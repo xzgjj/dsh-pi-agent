@@ -1,0 +1,77 @@
+name: CI
+
+# 抄 pi 的并发策略：同一分支新推送取消旧运行。
+# 不配置任何重试步骤（自动修复轮数纪律见 SPEC.md / ci-config.json）。
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    name: docs (budget + duplicates)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 文档字数预算（规划文档 ≤3000 字）
+        run: node scripts/ci/check-doc-budget.mjs
+      - name: 全仓重复段落查重
+        run: node scripts/ci/check-doc-duplicates.mjs
+
+  quality:
+    name: quality (typecheck + lint + unused + test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: 类型检查
+        run: npm run typecheck
+      - name: Lint（含复杂度上限）
+        run: npm run lint
+      - name: 未使用代码检查
+        run: npm run unused
+      - name: 测试（unit + contract；e2e 无密钥自动跳过）
+        run: npm run test
+
+  governance:
+    name: governance (diff budget + protected paths/tests)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Diff 预算（≤40 文件、≤3000 行）
+        run: npm run check:diff
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+      - name: 测试删除告警 + 契约测试保护
+        run: npm run check:guard
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          # PR 标签透传给 check-protected-paths：规则文件变更须带 approved-rules-change
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}
+      - name: 保护路径批准检查
+        run: node scripts/ci/check-protected-paths.mjs
+        env:
+          GITHUB_BASE_REF: ${{ github.base_ref }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ',') }}

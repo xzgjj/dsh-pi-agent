@@ -37,6 +37,19 @@
     "noDeletionDirs": ["tests/"],
     "approvalDirs": ["tests/contract/"]
   },
+  "testRegistry": {
+    "$comment": "docs/testing.md 是测试策略唯一事实来源；本节只放机器可读的扫描与校验参数。",
+    "registryDoc": "docs/testing.md",
+    "testDirs": ["test", "tests", "__tests__"],
+    "testFilePatterns": [".test.", ".spec."],
+    "scanRoots": ["test", "tests", "scripts", "src", "packages"],
+    "ignoreDirs": ["node_modules", ".git", "dist", "build", "out", "coverage", ".workbuddy"],
+    "allowedRunners": ["node", "node --test", "vitest", "playwright", "manual"],
+    "allowedMetadata": [
+      "fast", "slow", "isolated", "needs-network", "needs-filesystem",
+      "needs-display", "needs-vm", "serial", "protected", "manual"
+    ]
+  },
   "retryPolicy": {
     "maxAutoFixRounds": 2,
     "$comment": "CI 失败后自动修复最多 2 轮（共 3 次运行）；第 3 轮仍红必须人工介入，不允许无限循环。workflow 内不配置任何重试步骤。"

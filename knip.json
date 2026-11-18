@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/knip/schema.json",
+  "entry": [
+    "scripts/ci/*.mjs",
+    "tests/**/*.test.mjs",
+    "vitest.config.ts",
+    "eslint.config.mjs"
+  ],
+  "ignoreDependencies": ["globals"],
+  "ignore": []
+}

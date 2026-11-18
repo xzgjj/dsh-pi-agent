@@ -1,10 +1,5 @@
-# ===== 规划与内部分析文档（不入库）=====
-SPEC.md
-docs/
-
-# ===== 测试（统一放 test/，不追踪）=====
-test/
-tests/
+# ===== 文档与测试必须入库（CI 依赖它们：预算/查重/测试保护）=====
+# SPEC.md、docs/、tests/ 不再忽略；coverage 等产物仍忽略
 coverage/
 .nyc_output/
 
