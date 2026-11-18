@@ -1,4 +1,4 @@
 # 规则文件变更须指定人批准（批准者与开发者分离）。
-# TODO(首次推送前)：把 @OWNER 替换为实际的 GitHub 用户名/团队，
-# 并在仓库设置中启用分支保护（require review from Code Owners）。
-* @OWNER
+# 后续在 GitHub 仓库设置中启用分支保护（require review from Code Owners）后，
+# 下方规则对所有路径生效；目前先由 CI 的 approved-rules-change 标签门禁兜底。
+* @xzgjj
