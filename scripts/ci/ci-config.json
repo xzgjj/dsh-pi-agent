@@ -1,0 +1,49 @@
+{
+  "$comment": "CI 规则唯一事实来源（一个事实一个家）。所有检查脚本与契约测试都从这里读阈值；改动本文件须走保护路径审批流程（见 SPEC.md）。",
+  "version": 1,
+  "docBudget": {
+    "unit": "nonWhitespaceChars",
+    "planningLimit": 3000,
+    "analysisDocsUnlimited": true,
+    "planningDocs": [
+      "CLAUDE.md",
+      "SPEC.md",
+      "IMPLEMENTATION_PLAN.md",
+      "AGENT_EXECUTION_PROTOCOL.md",
+      "cli.md"
+    ]
+  },
+  "duplicateParagraph": {
+    "minChars": 20,
+    "ignoreHeadings": true,
+    "ignoreCodeBlocks": true
+  },
+  "diffBudget": {
+    "maxFiles": 40,
+    "maxChangedLines": 3000,
+    "exemptPaths": ["package-lock.json", "pnpm-lock.yaml"]
+  },
+  "protectedPaths": {
+    "requireLabel": "approved-rules-change",
+    "paths": [
+      ".github/workflows/**",
+      "scripts/ci/**",
+      "scripts/ci/ci-config.json",
+      "CODEOWNERS",
+      "SPEC.md"
+    ]
+  },
+  "protectedTests": {
+    "noDeletionDirs": ["tests/"],
+    "approvalDirs": ["tests/contract/"]
+  },
+  "retryPolicy": {
+    "maxAutoFixRounds": 2,
+    "$comment": "CI 失败后自动修复最多 2 轮（共 3 次运行）；第 3 轮仍红必须人工介入，不允许无限循环。workflow 内不配置任何重试步骤。"
+  },
+  "codeQuality": {
+    "eslintComplexityMax": 10,
+    "typecheck": "tsc --noEmit",
+    "unusedCode": "knip"
+  }
+}
