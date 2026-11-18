@@ -64,7 +64,8 @@ export function discoverTests(root, cfg) {
       const abs = path.join(dir, name);
       const rel = `${relDir}/${name}`;
       if (statSync(abs).isDirectory()) collectAllFiles(abs, rel, out);
-      else out.push(rel);
+      // 测试目录下只登记真正的测试文件；README/夹具文档不算（仍受重复段落等文档检查约束）
+      else if (cfg.testFilePatterns.some((p) => name.includes(p))) out.push(rel);
     }
   };
   for (const rootRel of cfg.scanRoots) {
@@ -77,6 +78,24 @@ export function discoverTests(root, cfg) {
 // 覆盖判定：测试路径落在某个已登记 Scope 前缀之下
 export function findCoveringScope(testPath, scopes) {
   return scopes.find((s) => testPath === s.replace(/\/$/, "") || testPath.startsWith(s.endsWith("/") ? s : `${s}/`)) || null;
+}
+
+// ---------- 注册表自身校验 ----------
+
+// 单行注册表条目校验（拆出以控制复杂度）
+function validateRow(r, cfg, problems, seen) {
+  if (!r.scope || !r.scope.includes("/")) problems.push(`Scope 非法（应为目录前缀，如 test/unit/）：${r.scope || "(空)"}`);
+  if (seen.has(r.scope)) problems.push(`Scope 重复登记：${r.scope}`);
+  seen.add(r.scope);
+  if (!cfg.allowedRunners.some((runner) => r.runner === runner || r.runner.startsWith(`${runner} `))) {
+    problems.push(`Runner 不在受控词表中（ci-config.allowedRunners）：${r.scope} → "${r.runner}"`);
+  }
+  if (!r.args) problems.push(`Args 为空（必须描述如何执行）：${r.scope}`);
+  for (const m of r.metadata) {
+    if (!cfg.allowedMetadata.includes(m)) {
+      problems.push(`Metadata 不在受控词表中：${r.scope} → "${m}"（新词先加入 ci-config.json → testRegistry.allowedMetadata 并在 testing.md 说明）`);
+    }
+  }
 }
 
 // ---------- 主审计（纯函数，便于契约测试） ----------
@@ -93,20 +112,7 @@ export function auditRegistry(cfg, registryText, discoveredTests) {
 
   // 注册表自身校验
   const seen = new Set();
-  for (const r of rows) {
-    if (!r.scope || !r.scope.includes("/")) problems.push(`Scope 非法（应为目录前缀，如 test/unit/）：${r.scope || "(空)"}`);
-    if (seen.has(r.scope)) problems.push(`Scope 重复登记：${r.scope}`);
-    seen.add(r.scope);
-    if (!cfg.allowedRunners.some((runner) => r.runner === runner || r.runner.startsWith(`${runner} `))) {
-      problems.push(`Runner 不在受控词表中（ci-config.allowedRunners）：${r.scope} → "${r.runner}"`);
-    }
-    if (!r.args) problems.push(`Args 为空（必须描述如何执行）：${r.scope}`);
-    for (const m of r.metadata) {
-      if (!cfg.allowedMetadata.includes(m)) {
-        problems.push(`Metadata 不在受控词表中：${r.scope} → "${m}"（新词先加入 ci-config.json → testRegistry.allowedMetadata 并在 testing.md 说明）`);
-      }
-    }
-  }
+  for (const r of rows) validateRow(r, cfg, problems, seen);
 
   // 仓库 ↔ 注册表一致性
   const scopes = rows.map((r) => r.scope);

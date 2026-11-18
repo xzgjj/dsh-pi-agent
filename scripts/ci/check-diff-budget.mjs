@@ -2,7 +2,7 @@
 // 改动范围白名单 + Diff 预算：单次变更超过 maxFiles / maxChangedLines 即失败，
 // 防止"小任务变成大重构"。豁免路径（锁文件）不计入。无 git 基线时跳过（本地首跑）。
 import { execFileSync } from "node:child_process";
-import { loadConfig, changedFiles, resolveBase, fail, skip, ROOT } from "./lib-ci.mjs";
+import { loadConfig, changedFiles, resolveBase, fail, skip, ROOT, isMain } from "./lib-ci.mjs";
 
 export function matches(relPath, patterns) {
   return patterns.some((p) => {

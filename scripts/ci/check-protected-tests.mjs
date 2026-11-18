@@ -1,10 +1,9 @@
 // scripts/ci/check-protected-tests.mjs
 // 测试保护：任何 tests/ 下的测试文件被删除 → 失败（改测试让失败消失是经典作弊）；
 // tests/contract/ 下的受保护回归测试被删除或修改 → 除非带 --approved / 环境声明，一律失败。
-import { loadConfig, changedFiles, resolveBase, fail, skip, isMain } from "./lib-ci.mjs";
+import { changedFiles, resolveBase, fail, skip, isMain } from "./lib-ci.mjs";
 
 function main() {
-  const config = loadConfig();
   const approved = process.argv.includes("--approved") || process.env.CI_PROTECTED_APPROVED === "1";
   const base = resolveBase(process.argv.filter((a) => a !== "--approved"));
   if (!base) skip("无 git 基线，测试保护不适用");

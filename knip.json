@@ -3,6 +3,7 @@
   "entry": [
     "scripts/ci/*.mjs",
     "tests/**/*.test.mjs",
+    "test/**/*.test.mjs",
     "vitest.config.ts",
     "eslint.config.mjs"
   ],

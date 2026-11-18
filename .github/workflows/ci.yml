@@ -44,7 +44,9 @@ jobs:
         run: npm run lint
       - name: 未使用代码检查
         run: npm run unused
-      - name: 测试（unit + contract；e2e 无密钥自动跳过）
+      - name: 测试注册表一致性（docs/testing.md ↔ 仓库）
+        run: npm run test:registry
+      - name: 测试（node:test 层 + vitest 层；e2e 无密钥自动跳过）
         run: npm run test
 
   governance:
